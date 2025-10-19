@@ -217,4 +217,4 @@ python -m pytest                 # Run tests (if configured)
 
 For issues and questions:
 - Create an issue in the repository
-- Check existing documentation in [![DEPLOYMENT.md]](./DEPLOYMENT.md) and ![backend/README.md]](./backend/README.md)
+- Check existing documentation in [DEPLOYMENT.md](./DEPLOYMENT.md) and [backend/README.md](./backend/README.md)
