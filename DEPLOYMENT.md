@@ -51,6 +51,7 @@ The backend expects the following at runtime:
    - **Node version:** use the default or set to `18.x`
    - **Package manager:** ensure `PNPM_VERSION` (e.g. `9`) is set if you rely on a specific version.
 
+   The repository includes a `.cfignore` that strips `.next/cache` from the final artifact so the upload stays under Cloudflare’s 25 MiB per-file limit. No extra cleanup step is required.
 3. **Set environment variables (Project Settings → Environment Variables)**
    - `NEXT_PUBLIC_DEFAULT_STT_MODEL` (optional, default `gpt-4o-mini-transcribe`)
    - `NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL` (optional, default `gpt-4o-mini`)

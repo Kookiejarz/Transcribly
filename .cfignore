@@ -1,0 +1,3 @@
+# Prevent backend and build caches from being uploaded to Cloudflare Pages
+backend/
+.next/cache/
