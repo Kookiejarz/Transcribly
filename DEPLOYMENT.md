@@ -46,12 +46,12 @@ The backend expects the following at runtime:
 
 2. **Configure build settings**
    - **Framework preset:** Next.js
-   - **Build command:** `pnpm install && pnpm build`
+   - **Build command:** `pnpm install && pnpm run build`
    - **Build output directory:** `.next`
    - **Node version:** use the default or set to `18.x`
    - **Package manager:** ensure `PNPM_VERSION` (e.g. `9`) is set if you rely on a specific version.
 
-   The repository includes a `.cfignore` that strips `.next/cache` from the final artifact so the upload stays under Cloudflare’s 25 MiB per-file limit. No extra cleanup step is required.
+   The `pnpm run build` script automatically prunes `.next/cache` after compiling so the artifacts stay under Cloudflare’s 25 MiB per-file limit. The project also ships with a `.cfignore` that excludes backend and cache directories from the upload bundle.
 3. **Set environment variables (Project Settings → Environment Variables)**
    - `NEXT_PUBLIC_DEFAULT_STT_MODEL` (optional, default `gpt-4o-mini-transcribe`)
    - `NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL` (optional, default `gpt-4o-mini`)
