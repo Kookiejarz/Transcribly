@@ -1,4 +1,4 @@
-# TranscribeAI - Audio/Video Transcription & Summarization App
+# Transcribly - Audio/Video Transcription & Summarization App
 
 A full-stack web application that transcribes and summarizes audio/video content using OpenAI's APIs. Users can upload audio files or provide YouTube URLs to get AI-generated transcripts and summaries with PDF export.
 
