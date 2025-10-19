@@ -211,11 +211,7 @@ python -m pytest                 # Run tests (if configured)
 
 ## License
 
-[Add your license information here]
-
-## Contributing
-
-[Add contribution guidelines here]
+[[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)]
 
 ## Support
 
