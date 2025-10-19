@@ -211,10 +211,10 @@ python -m pytest                 # Run tests (if configured)
 
 ## License
 
-[[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)]
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 ## Support
 
 For issues and questions:
 - Create an issue in the repository
-- Check existing documentation in `DEPLOYMENT.md` and `backend/README.md`
+- Check existing documentation in [![DEPLOYMENT.md]](./DEPLOYMENT.md) and ![backend/README.md]](./backend/README.md)
