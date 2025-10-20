@@ -59,7 +59,7 @@ class PDFExportService:
         return normalized.encode("latin-1", "replace").decode("latin-1")
 
     @staticmethod
-    def _wrap_text(value: str, width: int = 95) -> str:
+    def _wrap_text(value: str, width: int = 60) -> str:
         if not value:
             return ""
 
@@ -71,7 +71,7 @@ class PDFExportService:
                 continue
             wrapped_lines.extend(
                 textwrap.wrap(
-                    cleaned,
+                    PDFExportService._split_long_tokens(cleaned, width),
                     width=width,
                     break_long_words=True,
                     break_on_hyphens=True,
@@ -80,3 +80,14 @@ class PDFExportService:
             )
 
         return "\n".join(wrapped_lines)
+
+    @staticmethod
+    def _split_long_tokens(value: str, width: int) -> str:
+        tokens = value.split(" ")
+        normalized: list[str] = []
+        for token in tokens:
+            if len(token) <= width:
+                normalized.append(token)
+            else:
+                normalized.extend(token[i : i + width] for i in range(0, len(token), width))
+        return " ".join(normalized)
