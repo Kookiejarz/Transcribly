@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from openai import OpenAI
+import assemblyai as aai
 
 from ..config import settings
 
@@ -30,3 +31,21 @@ class OpenAIClientProvider:
             kwargs["base_url"] = self._api_base
 
         return OpenAI(**kwargs)
+
+
+class AssemblyAIClientProvider:
+    """Creates AssemblyAI API clients with per-request overrides."""
+
+    def __init__(
+        self,
+        default_api_key: str = settings.assemblyai_api_key,
+    ) -> None:
+        self._default_api_key = default_api_key
+
+    def create_client(self, api_key: Optional[str] = None) -> aai.Transcriber:
+        key = api_key or self._default_api_key
+        if not key:
+            raise ValueError("AssemblyAI API key is required.")
+
+        aai.settings.api_key = key
+        return aai.Transcriber()
