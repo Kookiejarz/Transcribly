@@ -36,14 +36,14 @@ app = FastAPI(
     description="Speech-to-text transcription and summarization service.",
 )
 
-if settings.cors_allow_origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_allow_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+cors_allow_origins = settings.cors_allow_origins or ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_allow_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 client_provider = OpenAIClientProvider()
 transcription_service = TranscriptionService(client_provider=client_provider)
