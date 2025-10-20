@@ -9,13 +9,53 @@ import YoutubeInput from "@/components/youtube-input"
 import TranscriptDisplay from "@/components/transcript-display"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import BackendHealthIndicator from "@/components/backend-health-indicator"
 import siteConfig from "@/config/site-config"
 import type { ProcessingFlow, ProcessingStage } from "@/lib/processing"
 
-const DEFAULT_STT_MODEL = process.env.NEXT_PUBLIC_DEFAULT_STT_MODEL ?? "gpt-4o-mini-transcribe"
+const DEFAULT_OPENAI_MODEL =
+  process.env.NEXT_PUBLIC_DEFAULT_OPENAI_STT_MODEL ??
+  process.env.NEXT_PUBLIC_DEFAULT_STT_MODEL ??
+  "gpt-4o-transcription"
+const DEFAULT_ASSEMBLY_MODEL = process.env.NEXT_PUBLIC_DEFAULT_ASSEMBLY_MODEL ?? "universal"
 const DEFAULT_SUMMARY_MODEL = process.env.NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL ?? "gpt-4o-mini"
 const DEFAULT_SUMMARY_MAX_TOKENS = 350
+const DEFAULT_PROVIDER =
+  (process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_PROVIDER ?? "openai").toLowerCase() === "assemblyai"
+    ? "assemblyai"
+    : "openai"
+
+const PROVIDER_OPTIONS = [
+  { value: "openai", label: "OpenAI Whisper" },
+  { value: "assemblyai", label: "AssemblyAI" },
+]
+
+const OPENAI_MODEL_OPTIONS = [
+  {
+    value: "whisper-1",
+    label: "Whisper-1",
+    description: "Reliable Whisper model with strong multilingual accuracy.",
+  },
+  {
+    value: "gpt-4o-transcription",
+    label: "GPT-4o Transcription",
+    description: "Next-gen GPT-4o transcription model with enhanced quality.",
+  },
+]
+
+const ASSEMBLY_MODEL_OPTIONS = [
+  {
+    value: "universal",
+    label: "Universal (default)",
+    description: "Use our fastest, most robust models with the broadest language support.",
+  },
+  {
+    value: "slam_1",
+    label: "Slam-1 (beta)",
+    description: "Use our most customizable model for your transcription (English only).",
+  },
+]
 
 const processingStepsMap: Record<ProcessingFlow, { id: Exclude<ProcessingStage, "idle">; label: string }[]> = {
   file: [
@@ -38,9 +78,12 @@ export type TranscriptionResult = {
 
 export type ApiConfiguration = {
   apiKey: string
-  sttModel: string
+  assemblyApiKey: string
+  openaiModel: string
+  assemblyModel: string
   summaryModel: string
   summaryMaxTokens: number
+  provider: "openai" | "assemblyai"
 }
 
 export default function TranscriptionApp() {
@@ -50,9 +93,12 @@ export default function TranscriptionApp() {
   const [processingFlow, setProcessingFlow] = useState<ProcessingFlow | null>(null)
   const [config, setConfig] = useState<ApiConfiguration>({
     apiKey: "",
-    sttModel: DEFAULT_STT_MODEL,
+    assemblyApiKey: "",
+    openaiModel: DEFAULT_OPENAI_MODEL,
+    assemblyModel: DEFAULT_ASSEMBLY_MODEL,
     summaryModel: DEFAULT_SUMMARY_MODEL,
     summaryMaxTokens: DEFAULT_SUMMARY_MAX_TOKENS,
+    provider: DEFAULT_PROVIDER,
   })
 
   const accentColor = siteConfig.colors.accent
@@ -103,6 +149,17 @@ export default function TranscriptionApp() {
     () => (activeIndex >= 0 && activeIndex < activeSteps.length ? activeSteps[activeIndex] : null),
     [activeIndex, activeSteps]
   )
+
+  const activeOpenAIModel = useMemo(
+    () => OPENAI_MODEL_OPTIONS.find((option) => option.value === config.openaiModel) ?? OPENAI_MODEL_OPTIONS[0],
+    [config.openaiModel]
+  )
+  const activeAssemblyModel = useMemo(
+    () => ASSEMBLY_MODEL_OPTIONS.find((option) => option.value === config.assemblyModel) ?? ASSEMBLY_MODEL_OPTIONS[0],
+    [config.assemblyModel]
+  )
+  const activeModelOption =
+    config.provider === "openai" ? activeOpenAIModel : activeAssemblyModel
 
   return (
     <div className="min-h-screen bg-background">
@@ -199,24 +256,109 @@ export default function TranscriptionApp() {
                     </p>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="provider" className="text-sm font-medium text-foreground">
+                      Transcription Provider
+                    </Label>
+                    <Select
+                      value={config.provider}
+                      onValueChange={(value) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          provider: value as "openai" | "assemblyai",
+                        }))
+                      }
+                    >
+                      <SelectTrigger id="provider" className="w-full transition-all duration-300 focus:ring-2">
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROVIDER_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Choose between OpenAI Whisper or AssemblyAI for speech-to-text processing.
+                    </p>
+                  </div>
+
+                  {config.provider === "assemblyai" && (
                     <div className="space-y-2">
-                      <Label htmlFor="stt-model" className="text-sm font-medium text-foreground">
-                        Speech-to-Text Model
+                      <Label htmlFor="assembly-api-key" className="text-sm font-medium text-foreground">
+                        AssemblyAI API Key
                       </Label>
                       <Input
-                        id="stt-model"
-                        type="text"
-                        value={config.sttModel}
+                        id="assembly-api-key"
+                        type="password"
+                        placeholder="assemblyai-..."
+                        value={config.assemblyApiKey}
                         onChange={(event) =>
                           setConfig((prev) => ({
                             ...prev,
-                            sttModel: event.target.value,
+                            assemblyApiKey: event.target.value,
                           }))
                         }
                         className="transition-all duration-300 focus:ring-2"
                         style={{ boxShadow: `0 0 0 2px transparent`, borderColor: `${siteConfig.colors.accent}33` }}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Leave blank to use the backend default AssemblyAI key.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="stt-model" className="text-sm font-medium text-foreground">
+                        Speech-to-Text Model
+                      </Label>
+                      {config.provider === "openai" ? (
+                        <Select
+                          value={config.openaiModel}
+                          onValueChange={(value) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              openaiModel: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger id="stt-model" className="w-full transition-all duration-300 focus:ring-2">
+                            <SelectValue placeholder="Select OpenAI model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {OPENAI_MODEL_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Select
+                          value={config.assemblyModel}
+                          onValueChange={(value) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              assemblyModel: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger id="stt-model" className="w-full transition-all duration-300 focus:ring-2">
+                            <SelectValue placeholder="Select AssemblyAI model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ASSEMBLY_MODEL_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <p className="text-xs text-muted-foreground">{activeModelOption.description}</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="summary-model" className="text-sm font-medium text-foreground">

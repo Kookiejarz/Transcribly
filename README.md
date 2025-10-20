@@ -1,12 +1,14 @@
 # Transcribly - Audio/Video Transcription & Summarization App
 
-A web application that transcribes and summarizes audio/video content using OpenAI's APIs. Users can upload audio files or provide YouTube URLs to get AI-generated transcripts and summaries with plain text export.
+A web application that transcribes and summarizes audio/video content using OpenAI or AssemblyAI. Users can upload audio files or provide YouTube URLs to get AI-generated transcripts and summaries with plain text export.
 
 ## Features
 
 - 🎙️ **Audio Transcription** - Upload MP3, WAV, MP4, or M4A files
 - 🎬 **YouTube Support** - Transcribe videos directly from YouTube URLs
 - 📝 **AI Summarization** - Generate concise summaries with chunking for long transcripts
+- 🔄 **Provider Switch** - Toggle between OpenAI Whisper and AssemblyAI
+- 🎚️ **Model Picker** - Choose transcription models per provider (Whisper-1, GPT-4o Transcription, Universal, Slam-1)
 - 📄 **Text Export** - Download transcripts and summaries as plain text files
 - ⚙️ **Configurable** - Customize API keys, models, and parameters per request
 - 🎨 **Modern UI** - Clean interface with drag-and-drop, light/dark themes
@@ -21,6 +23,8 @@ A web application that transcribes and summarizes audio/video content using Open
   - Drag-and-drop file upload
   - YouTube URL input
   - Real-time progress tracking
+  - Provider switch between OpenAI Whisper and AssemblyAI
+  - Model picker per provider (Whisper-1, GPT-4o Transcription, Universal, Slam-1)
   - Copy to clipboard & text download
   - Configurable API settings
 
@@ -28,6 +32,7 @@ A web application that transcribes and summarizes audio/video content using Open
 - **Framework**: FastAPI with async support
 - **Core Services**:
   - OpenAI Whisper API integration
+  - AssemblyAI transcription integration with speech model selection
   - Text summarization with smart chunking
   - YouTube audio extraction via `yt-dlp`
   - Plain text transcript export
@@ -85,9 +90,12 @@ Create a `.env` file in the `backend/` directory:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key (required) | - |
+| `OPENAI_API_KEY` | OpenAI API key (required unless provided per-request) | - |
 | `OPENAI_API_BASE` | Custom API base for compatible endpoints | - |
-| `STT_MODEL_NAME` | Speech-to-text model | `gpt-4o-mini-transcribe` |
+| `ASSEMBLYAI_API_KEY` | AssemblyAI API key (required when using AssemblyAI) | - |
+| `TRANSCRIPTION_PROVIDER` | Default provider: `openai` or `assemblyai` | `openai` |
+| `STT_MODEL_NAME` | OpenAI speech-to-text model | `gpt-4o-transcription` |
+| `ASSEMBLYAI_SPEECH_MODEL` | AssemblyAI speech model | `universal` |
 | `SUMMARY_MODEL_NAME` | Summarization model | `gpt-4o-mini` |
 | `SUMMARY_MAX_TOKENS` | Max tokens for summaries | `300` |
 | `SUMMARY_CHUNK_WORDS` | Chunk size for long transcripts | `1200` |
@@ -103,9 +111,11 @@ Create a `.env.local` file in the project root (optional):
 
 ```bash
 TRANSCRIPTION_API_URL=http://localhost:8000
-NEXT_PUBLIC_DEFAULT_STT_MODEL=gpt-4o-mini-transcribe
+NEXT_PUBLIC_DEFAULT_OPENAI_STT_MODEL=gpt-4o-transcription
+NEXT_PUBLIC_DEFAULT_ASSEMBLY_MODEL=universal
 NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL=gpt-4o-mini
 NEXT_PUBLIC_DEFAULT_SUMMARY_MAX_TOKENS=300
+NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_PROVIDER=openai
 ```
 
 ### Branding & Icons
@@ -138,8 +148,9 @@ Replace the files in `public/` (`logo.svg`, `logo-dark.svg`, `favicon.svg`, `app
 
 Requests can override defaults via:
 - `X-API-Key` header
-- JSON fields: `apiKey`, `sttModel`, `summaryModel`, `summaryMaxTokens`
-- Multipart form fields with same names
+- `X-AssemblyAI-Key` header (AssemblyAI provider)
+- JSON fields: `apiKey`, `assemblyApiKey`, `assemblyModel`, `sttModel`, `summaryModel`, `summaryMaxTokens`, `provider`
+- Multipart form fields with the same names
 
 ## Deployment
 

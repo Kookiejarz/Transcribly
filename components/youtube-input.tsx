@@ -57,13 +57,19 @@ export default function YoutubeInput({
       if (config.apiKey) {
         headers["X-API-Key"] = config.apiKey
       }
+      if (config.assemblyApiKey) {
+        headers["X-AssemblyAI-Key"] = config.assemblyApiKey
+      }
 
       const payload = {
         url,
         apiKey: config.apiKey || undefined,
-        sttModel: config.sttModel || undefined,
+        assemblyApiKey: config.assemblyApiKey || undefined,
+        assemblyModel: config.provider === "assemblyai" ? config.assemblyModel : undefined,
+        sttModel: config.provider === "openai" ? config.openaiModel : undefined,
         summaryModel: config.summaryModel || undefined,
         summaryMaxTokens: config.summaryMaxTokens || undefined,
+        provider: config.provider,
       }
 
       const response = await fetch(buildBackendUrl("/youtube-transcribe"), {

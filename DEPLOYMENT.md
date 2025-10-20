@@ -53,7 +53,8 @@ The backend expects the following at runtime:
 
    The `pnpm run build` script automatically prunes `.next/cache` after compiling so the artifacts stay under Cloudflare’s 25 MiB per-file limit. The project also ships with a `.cfignore` that excludes backend and cache directories from the upload bundle. Pages Functions under `functions/api/*` are deployed automatically and proxy `/api` traffic to your backend.
 3. **Set environment variables (Project Settings → Environment Variables)**
-   - `NEXT_PUBLIC_DEFAULT_STT_MODEL` (optional, default `gpt-4o-mini-transcribe`)
+   - `NEXT_PUBLIC_DEFAULT_OPENAI_STT_MODEL` (optional, default `gpt-4o-transcription`)
+   - `NEXT_PUBLIC_DEFAULT_ASSEMBLY_MODEL` (optional, default `universal`)
    - `NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL` (optional, default `gpt-4o-mini`)
    - `NEXT_PUBLIC_DEFAULT_SUMMARY_MAX_TOKENS` (optional, default `350`)
    - `BACKEND_ORIGIN` **(required)** – base URL of the FastAPI backend, e.g. `https://api.yourdomain.com`

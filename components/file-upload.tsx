@@ -67,14 +67,20 @@ export default function FileUpload({
     if (config.apiKey) {
       formData.append("apiKey", config.apiKey)
     }
-    if (config.sttModel) {
-      formData.append("sttModel", config.sttModel)
+    if (config.provider === "openai") {
+      formData.append("sttModel", config.openaiModel)
+    } else {
+      formData.append("assemblyModel", config.assemblyModel)
     }
     if (config.summaryModel) {
       formData.append("summaryModel", config.summaryModel)
     }
     if (config.summaryMaxTokens) {
       formData.append("summaryMaxTokens", String(config.summaryMaxTokens))
+    }
+    formData.append("provider", config.provider)
+    if (config.assemblyApiKey) {
+      formData.append("assemblyApiKey", config.assemblyApiKey)
     }
 
     let progressInterval: ReturnType<typeof setInterval> | null = null
@@ -94,6 +100,9 @@ export default function FileUpload({
       const headers: Record<string, string> = {}
       if (config.apiKey) {
         headers["X-API-Key"] = config.apiKey
+      }
+      if (config.assemblyApiKey) {
+        headers["X-AssemblyAI-Key"] = config.assemblyApiKey
       }
 
       const response = await fetch(buildBackendUrl("/upload-audio"), {

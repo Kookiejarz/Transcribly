@@ -1,6 +1,6 @@
 # Transcription API Backend
 
-This FastAPI service provides speech-to-text transcription, summarisation, YouTube audio ingestion, and plain-text export for the Transcribly frontend.
+This FastAPI service provides speech-to-text transcription (OpenAI Whisper or AssemblyAI), summarisation, YouTube audio ingestion, and plain-text export for the Transcribly frontend.
 
 ## Requirements
 
@@ -29,7 +29,10 @@ cp .env.example .env
 | --- | --- | --- |
 | `OPENAI_API_KEY` | OpenAI API key used when requests do not provide one | _required unless provided per-request_ |
 | `OPENAI_API_BASE` | Custom API base for OpenAI-compatible endpoints | unset |
-| `STT_MODEL_NAME` | Default speech-to-text model | `gpt-4o-mini-transcribe` |
+| `ASSEMBLYAI_API_KEY` | AssemblyAI API key when using the AssemblyAI provider | unset |
+| `TRANSCRIPTION_PROVIDER` | Default provider (`openai` or `assemblyai`) | `openai` |
+| `STT_MODEL_NAME` | Default OpenAI speech-to-text model | `gpt-4o-transcription` |
+| `ASSEMBLYAI_SPEECH_MODEL` | Default AssemblyAI speech model | `universal` |
 | `SUMMARY_MODEL_NAME` | Default summarisation model | `gpt-4o-mini` |
 | `SUMMARY_MAX_TOKENS` | Maximum tokens for generated summaries | `300` |
 | `SUMMARY_CHUNK_WORDS` | Chunk size (words) for long transcripts | `1200` |
@@ -44,7 +47,8 @@ cp .env.example .env
 Requests may also include:
 
 - `X-API-Key` header
-- JSON body fields `apiKey`, `sttModel`, `summaryModel`, `summaryMaxTokens`
+- `X-AssemblyAI-Key` header
+- JSON body fields `apiKey`, `assemblyApiKey`, `assemblyModel`, `sttModel`, `summaryModel`, `summaryMaxTokens`, `provider`
 - Multipart form fields with the same names
 
 These override defaults for that request only.

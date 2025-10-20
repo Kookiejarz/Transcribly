@@ -17,6 +17,7 @@ from .models import (
 )
 from .options import RequestOptions
 from .services import (
+    AssemblyAIClientProvider,
     OpenAIClientProvider,
     SessionStore,
     SummarizationService,
@@ -45,7 +46,11 @@ app.add_middleware(
 )
 
 client_provider = OpenAIClientProvider()
-transcription_service = TranscriptionService(client_provider=client_provider)
+assembly_client_provider = AssemblyAIClientProvider()
+transcription_service = TranscriptionService(
+    client_provider=client_provider,
+    assembly_client_provider=assembly_client_provider,
+)
 summarization_service = SummarizationService(
     client_provider=client_provider,
 )
@@ -74,9 +79,12 @@ async def upload_audio(
     request: Request,
     file: UploadFile = File(...),
     api_key: str | None = Form(default=None, alias="apiKey"),
+    assembly_api_key: str | None = Form(default=None, alias="assemblyApiKey"),
+    assembly_model: str | None = Form(default=None, alias="assemblyModel"),
     stt_model: str | None = Form(default=None, alias="sttModel"),
     summary_model: str | None = Form(default=None, alias="summaryModel"),
     summary_max_tokens: int | None = Form(default=None, alias="summaryMaxTokens"),
+    provider: str | None = Form(default=None, alias="provider"),
 ) -> TranscriptionResponse:
     if not file.filename:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File name missing.")
@@ -91,9 +99,12 @@ async def upload_audio(
         request,
         TranscriptionOptions(
             api_key=api_key,
+            assembly_api_key=assembly_api_key,
+            assembly_model=assembly_model,
             stt_model=stt_model,
             summary_model=summary_model,
             summary_max_tokens=summary_max_tokens,
+            provider=provider,
         ),
     )
 
@@ -143,9 +154,12 @@ async def youtube_transcribe(
     audio_path: Path | None = None
     options = RequestOptions(
         api_key=payload.api_key or request.headers.get("X-API-Key"),
+        assembly_api_key=payload.assembly_api_key or request.headers.get("X-AssemblyAI-Key"),
+        assembly_model=payload.assembly_model,
         stt_model=payload.stt_model,
         summary_model=payload.summary_model,
         summary_max_tokens=payload.summary_max_tokens,
+        provider=payload.provider,
     )
     try:
         audio_path = await youtube_service.download_audio(str(payload.url))
@@ -198,9 +212,13 @@ async def download_transcript(session_id: str = Query(..., description="Session 
 
 def build_request_options(request: Request, payload: TranscriptionOptions) -> RequestOptions:
     header_key = request.headers.get("X-API-Key")
+    assembly_header = request.headers.get("X-AssemblyAI-Key")
     return RequestOptions(
         api_key=payload.api_key or header_key,
+        assembly_api_key=payload.assembly_api_key or assembly_header,
+        assembly_model=payload.assembly_model,
         stt_model=payload.stt_model,
         summary_model=payload.summary_model,
         summary_max_tokens=payload.summary_max_tokens,
+        provider=payload.provider,
     )
