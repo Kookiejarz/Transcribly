@@ -6,16 +6,25 @@ import { useState } from "react"
 import { Youtube, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { buildBackendUrl, extractBackendError } from "@/lib/backend-client"
+import type { ProcessingFlow, ProcessingStage } from "@/lib/processing"
 import type { ApiConfiguration, TranscriptionResult } from "./transcription-app"
 
 type YoutubeInputProps = {
   config: ApiConfiguration
   onTranscriptionComplete: (result: TranscriptionResult) => void
-  onProcessingStart: () => void
+  onProcessingStart: (flow: ProcessingFlow, initialStage: ProcessingStage) => void
+  onProcessingStageChange: (stage: ProcessingStage) => void
   onError: (error: string) => void
 }
 
-export default function YoutubeInput({ config, onTranscriptionComplete, onProcessingStart, onError }: YoutubeInputProps) {
+export default function YoutubeInput({
+  config,
+  onTranscriptionComplete,
+  onProcessingStart,
+  onProcessingStageChange,
+  onError,
+}: YoutubeInputProps) {
   const [url, setUrl] = useState("")
   const [isValidating, setIsValidating] = useState(false)
 
@@ -38,7 +47,8 @@ export default function YoutubeInput({ config, onTranscriptionComplete, onProces
     }
 
     setIsValidating(true)
-    onProcessingStart()
+    onProcessingStart("youtube", "downloading")
+    onProcessingStageChange("downloading")
 
     try {
       const headers: Record<string, string> = {
@@ -56,26 +66,33 @@ export default function YoutubeInput({ config, onTranscriptionComplete, onProces
         summaryMaxTokens: config.summaryMaxTokens || undefined,
       }
 
-      const response = await fetch("/api/transcribe-youtube", {
+      const response = await fetch(buildBackendUrl("/youtube-transcribe"), {
         method: "POST",
         headers,
         body: JSON.stringify(payload),
       })
 
+      onProcessingStageChange("transcribing")
+
       if (!response.ok) {
         let message = "Failed to transcribe YouTube video. Please try again."
         try {
-          const errorData = await response.json()
-          if (errorData?.error) {
-            message = errorData.error
-          }
+          message = await extractBackendError(response)
         } catch {
           // ignore parse errors
         }
         throw new Error(message)
       }
 
-      const data: TranscriptionResult = await response.json()
+      onProcessingStageChange("summarizing")
+      await new Promise((resolve) => setTimeout(resolve, 400))
+
+      const raw = await response.json()
+      const data: TranscriptionResult = {
+        sessionId: raw.session_id ?? raw.sessionId ?? "",
+        transcript: raw.transcript ?? "",
+        summary: raw.summary ?? "",
+      }
 
       if (!data.sessionId || !data.transcript) {
         throw new Error("Received incomplete response from transcription service.")
@@ -85,6 +102,7 @@ export default function YoutubeInput({ config, onTranscriptionComplete, onProces
       setUrl("")
     } catch (err) {
       onError(err instanceof Error ? err.message : "An error occurred during transcription")
+      onProcessingStageChange("idle")
     } finally {
       setIsValidating(false)
     }

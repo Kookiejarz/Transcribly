@@ -5,6 +5,8 @@ import { Copy, Download, Check, FileText, Sparkles, Hash } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { buildBackendUrl, extractBackendError } from "@/lib/backend-client"
+import MarkdownRenderer from "@/components/markdown-renderer"
 import type { TranscriptionResult } from "./transcription-app"
 
 type TranscriptDisplayProps = {
@@ -34,15 +36,14 @@ export default function TranscriptDisplay({ result }: TranscriptDisplayProps) {
   const downloadPDF = async () => {
     setIsDownloading(true)
     try {
-      const response = await fetch(`/api/download-pdf?sessionId=${encodeURIComponent(result.sessionId)}`)
+      const response = await fetch(
+        buildBackendUrl(`/download-pdf?session_id=${encodeURIComponent(result.sessionId)}`)
+      )
 
       if (!response.ok) {
         let message = "Failed to generate PDF"
         try {
-          const errorData = await response.json()
-          if (errorData?.error) {
-            message = errorData.error
-          }
+          message = await extractBackendError(response)
         } catch {
           // ignore parse errors
         }
@@ -135,8 +136,8 @@ export default function TranscriptDisplay({ result }: TranscriptDisplayProps) {
                 )}
               </Button>
             </div>
-            <div className="rounded-lg bg-muted p-4">
-              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{result.summary}</p>
+            <div className="rounded-lg bg-muted/60 p-4">
+              <MarkdownRenderer content={result.summary} className="space-y-3 text-sm" />
             </div>
           </TabsContent>
         </Tabs>

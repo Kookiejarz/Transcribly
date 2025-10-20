@@ -1,0 +1,21 @@
+{
+  "name": "Transcribly",
+  "shortName": "Transcribly",
+  "tagline": "Transcribe and summarize audio & video content",
+  "description": "Transcribly converts speech to text and produces concise summaries with modern AI tooling.",
+  "assets": {
+    "logo": "/logo.svg",
+    "logoDark": "/logo-dark.svg",
+    "favicon": "/favicon.svg",
+    "appleTouchIcon": "/apple-touch-icon.png"
+  },
+  "colors": {
+    "accent": "#6366f1",
+    "accentSecondary": "#0ea5e9",
+    "status": {
+      "healthy": "#10b981",
+      "unhealthy": "#ef4444",
+      "checking": "#f59e0b"
+    }
+  }
+}

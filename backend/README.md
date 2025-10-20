@@ -1,6 +1,6 @@
 # Transcription API Backend
 
-This FastAPI service provides speech-to-text transcription, summarisation, YouTube audio ingestion, and PDF export for the TranscribeAI frontend.
+This FastAPI service provides speech-to-text transcription, summarisation, YouTube audio ingestion, and PDF export for the Transcribly frontend.
 
 ## Requirements
 

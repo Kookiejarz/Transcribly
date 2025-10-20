@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="transcribly-favicon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#transcribly-favicon-gradient)"/>
+  <path d="M20 32c0-6.627 5.373-12 12-12 3.271 0 6.233 1.323 8.384 3.443" stroke="#EEF2FF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44 32c0 6.627-5.373 12-12 12-3.271 0-6.233-1.323-8.384-3.443" stroke="#EEF2FF" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  <circle cx="32" cy="32" r="6" fill="#F9FAFB"/>
+</svg>

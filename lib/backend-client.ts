@@ -1,13 +1,26 @@
-const DEFAULT_BACKEND_URL = "http://localhost:8000"
-
-function getBackendBaseUrl(): string {
-  const raw = process.env.TRANSCRIPTION_API_URL || DEFAULT_BACKEND_URL
-  return raw.endsWith("/") ? raw.slice(0, -1) : raw
+function resolveBackendBaseUrl(): string {
+  const explicit =
+    process.env.NEXT_PUBLIC_TRANSCRIPTION_API_URL || process.env.TRANSCRIPTION_API_URL || ""
+  if (explicit) {
+    return explicit.endsWith("/") ? explicit.slice(0, -1) : explicit
+  }
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return `${protocol}//${hostname}:8000`
+    }
+  }
+  return "/api"
 }
 
 export function buildBackendUrl(path: string): string {
-  const base = getBackendBaseUrl()
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`
+  const base = resolveBackendBaseUrl()
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  if (base.startsWith("http")) {
+    return `${base}${normalizedPath}`
+  }
+  const basePrefix = base.endsWith("/") ? base.slice(0, -1) : base
+  return `${basePrefix}${normalizedPath}`
 }
 
 export async function extractBackendError(response: Response): Promise<string> {

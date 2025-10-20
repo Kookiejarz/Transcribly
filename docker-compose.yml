@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: transcribly-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-}
+      - STT_MODEL_NAME=${STT_MODEL_NAME:-gpt-4o-mini-transcribe}
+      - SUMMARY_MODEL_NAME=${SUMMARY_MODEL_NAME:-gpt-4o-mini}
+      - SUMMARY_MAX_TOKENS=${SUMMARY_MAX_TOKENS:-300}
+      - SUMMARY_CHUNK_WORDS=${SUMMARY_CHUNK_WORDS:-1200}
+      - SESSION_TTL_MINUTES=${SESSION_TTL_MINUTES:-240}
+      - CORS_ALLOW_ORIGINS=${CORS_ALLOW_ORIGINS:-*}
+      - TRANSCRIPTION_TEMP_DIR=${TRANSCRIPTION_TEMP_DIR:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped

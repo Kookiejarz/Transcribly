@@ -108,6 +108,25 @@ NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL=gpt-4o-mini
 NEXT_PUBLIC_DEFAULT_SUMMARY_MAX_TOKENS=300
 ```
 
+### Branding & Icons
+
+Update `public/site-config.json` to change the app name, tagline, or icon paths:
+
+```json
+{
+  "name": "Transcribly",
+  "tagline": "Transcribe and summarize audio & video content",
+  "assets": {
+    "logo": "/logo.svg",
+    "logoDark": "/logo-dark.svg",
+    "favicon": "/favicon.svg",
+    "appleTouchIcon": "/apple-touch-icon.png"
+  }
+}
+```
+
+Replace the files in `public/` (`logo.svg`, `logo-dark.svg`, `favicon.svg`, `apple-touch-icon.png`) with your own assets to rebrand the UI instantly.
+
 ## API Endpoints
 
 - `POST /upload-audio` - Upload audio file for transcription

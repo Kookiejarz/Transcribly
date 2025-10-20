@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This document walks through deploying the TranscribeAI frontend to Cloudflare Pages and the FastAPI backend to a VPS using Docker.
+This document walks through deploying the Transcribly frontend to Cloudflare Pages and the FastAPI backend to a VPS using Docker.
 
 ## 1. Backend (FastAPI) on VPS
 
@@ -51,20 +51,25 @@ The backend expects the following at runtime:
    - **Node version:** use the default or set to `18.x`
    - **Package manager:** ensure `PNPM_VERSION` (e.g. `9`) is set if you rely on a specific version.
 
-   The `pnpm run build` script automatically prunes `.next/cache` after compiling so the artifacts stay under Cloudflare’s 25 MiB per-file limit. The project also ships with a `.cfignore` that excludes backend and cache directories from the upload bundle.
+   The `pnpm run build` script automatically prunes `.next/cache` after compiling so the artifacts stay under Cloudflare’s 25 MiB per-file limit. The project also ships with a `.cfignore` that excludes backend and cache directories from the upload bundle. Pages Functions under `functions/api/*` are deployed automatically and proxy `/api` traffic to your backend.
 3. **Set environment variables (Project Settings → Environment Variables)**
    - `NEXT_PUBLIC_DEFAULT_STT_MODEL` (optional, default `gpt-4o-mini-transcribe`)
    - `NEXT_PUBLIC_DEFAULT_SUMMARY_MODEL` (optional, default `gpt-4o-mini`)
    - `NEXT_PUBLIC_DEFAULT_SUMMARY_MAX_TOKENS` (optional, default `350`)
-   - `TRANSCRIPTION_API_URL` **(required)** – point this to your VPS backend URL, e.g. `https://api.yourdomain.com`
+   - `BACKEND_ORIGIN` **(required)** – base URL of the FastAPI backend, e.g. `https://api.yourdomain.com`
+   - `NEXT_PUBLIC_TRANSCRIPTION_API_URL` (optional) – only set if you prefer the frontend to call the backend directly instead of the Cloudflare proxy
 
-   If you want the frontend to forward a default API key with every request, set `X-API-Key` at the browser layer via Cloudflare Pages secrets (use caution). Prefer leaving it blank and managing the key solely on the backend.
+   If you want the frontend to forward a default API key with every request, add a public env such as `NEXT_PUBLIC_DEFAULT_API_KEY` and wire it into the UI. The current UI already allows end users to input their key locally, so server-side storage is optional.
 
 4. **Trigger a deployment** by committing changes or manually rebuilding in Cloudflare Pages.
 
 5. **Verify**
    - Visit the Cloudflare Pages URL.
    - Upload an audio file and run a YouTube transcription to confirm the frontend successfully reaches the backend.
+
+### Local development
+
+When running `pnpm dev`, create a `.env.local` file with `NEXT_PUBLIC_TRANSCRIPTION_API_URL=http://localhost:8000` so the client can talk directly to your locally running FastAPI backend.
 
 ## 3. Keeping Things Updated
 

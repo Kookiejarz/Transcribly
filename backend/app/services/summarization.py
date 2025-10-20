@@ -84,18 +84,21 @@ class SummarizationService:
     @staticmethod
     def _build_prompt(text: str, *, is_revision: bool = False):
         system_instruction = (
-            "You are an assistant that produces clear, concise summaries. "
-            "Highlight key themes, actions, and decisions. Use bullet points when helpful."
+            "You are an assistant that produces clear, concise summaries formatted as Markdown. "
+            "Organize content with short sections, bullet lists, and bold highlights when appropriate. "
+            "Render equations or mathematical expressions using LaTeX ($inline$ or $$block$$ syntax)."
         )
         user_prompt = (
-            "Summarize the following transcript segment in 3-6 sentences. "
-            "Preserve key facts, speaker intents, and actionable items.\n\n"
+            "Summarize the following transcript segment using Markdown. "
+            "Keep the result easy to scan with short sections, bullet points, or tables when they help. "
+            "Preserve key facts, speaker intents, and actionable items. "
+            "Use LaTeX `$...$` or `$$...$$` to typeset mathematical expressions when present in the source.\n\n"
             f"Transcript:\n{text.strip()}"
         )
         if is_revision:
             user_prompt = (
-                "Combine the partial summaries below into a single cohesive summary. "
-                "Avoid duplication and keep it easy to scan.\n\n"
+                "Combine the partial summaries below into a single cohesive Markdown summary. "
+                "Avoid duplication, keep the structure easy to scan, and retain any LaTeX math notation.\n\n"
                 f"Partial summaries:\n{text.strip()}"
             )
 

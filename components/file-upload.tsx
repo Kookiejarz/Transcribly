@@ -5,16 +5,25 @@ import { useDropzone } from "react-dropzone"
 import { Upload, File, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { buildBackendUrl, extractBackendError } from "@/lib/backend-client"
+import type { ProcessingStage, ProcessingFlow } from "@/lib/processing"
 import type { ApiConfiguration, TranscriptionResult } from "./transcription-app"
 
 type FileUploadProps = {
   config: ApiConfiguration
   onTranscriptionComplete: (result: TranscriptionResult) => void
-  onProcessingStart: () => void
+  onProcessingStart: (flow: ProcessingFlow, initialStage: ProcessingStage) => void
+  onProcessingStageChange: (stage: ProcessingStage) => void
   onError: (error: string) => void
 }
 
-export default function FileUpload({ config, onTranscriptionComplete, onProcessingStart, onError }: FileUploadProps) {
+export default function FileUpload({
+  config,
+  onTranscriptionComplete,
+  onProcessingStart,
+  onProcessingStageChange,
+  onError,
+}: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
 
@@ -49,7 +58,8 @@ export default function FileUpload({ config, onTranscriptionComplete, onProcessi
   const handleUpload = async () => {
     if (!file) return
 
-    onProcessingStart()
+    onProcessingStart("file", "uploading")
+    onProcessingStageChange("uploading")
     setUploadProgress(0)
 
     const formData = new FormData()
@@ -86,28 +96,34 @@ export default function FileUpload({ config, onTranscriptionComplete, onProcessi
         headers["X-API-Key"] = config.apiKey
       }
 
-      const response = await fetch("/api/transcribe", {
+      const response = await fetch(buildBackendUrl("/upload-audio"), {
         method: "POST",
         body: formData,
         headers,
       })
 
       setUploadProgress(100)
+      onProcessingStageChange("transcribing")
 
       if (!response.ok) {
         let message = "Transcription failed. Please try again."
         try {
-          const errorData = await response.json()
-          if (errorData?.error) {
-            message = errorData.error
-          }
+          message = await extractBackendError(response)
         } catch {
           // ignore parse errors
         }
         throw new Error(message)
       }
 
-      const data: TranscriptionResult = await response.json()
+      onProcessingStageChange("summarizing")
+      await new Promise((resolve) => setTimeout(resolve, 350))
+
+      const raw = await response.json()
+      const data: TranscriptionResult = {
+        sessionId: raw.session_id ?? raw.sessionId ?? "",
+        transcript: raw.transcript ?? "",
+        summary: raw.summary ?? "",
+      }
 
       if (!data.sessionId || !data.transcript) {
         throw new Error("Received incomplete response from transcription service.")
@@ -119,6 +135,7 @@ export default function FileUpload({ config, onTranscriptionComplete, onProcessi
     } catch (err) {
       onError(err instanceof Error ? err.message : "An error occurred during upload")
       setUploadProgress(0)
+      onProcessingStageChange("idle")
     } finally {
       if (progressInterval) {
         clearInterval(progressInterval)

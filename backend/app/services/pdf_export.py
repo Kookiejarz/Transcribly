@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import io
+import textwrap
 from typing import Optional
 
 from fpdf import FPDF
@@ -32,15 +32,51 @@ class PDFExportService:
         pdf.set_font("Helvetica", "B", 12)
         pdf.multi_cell(0, 8, "Summary")
         pdf.set_font("Helvetica", size=11)
-        pdf.multi_cell(0, 7, summary or "No summary available.")
+        summary_text = self._wrap_text(self._sanitize_text(summary))
+        if not summary_text.strip():
+            summary_text = self._wrap_text("No summary available.")
+        pdf.multi_cell(0, 7, summary_text)
 
         pdf.ln(5)
         pdf.set_font("Helvetica", "B", 12)
         pdf.multi_cell(0, 8, "Transcript")
         pdf.set_font("Helvetica", size=11)
-        pdf.multi_cell(0, 6, transcript or "No transcript available.")
+        transcript_text = self._wrap_text(self._sanitize_text(transcript))
+        if not transcript_text.strip():
+            transcript_text = self._wrap_text("No transcript available.")
+        pdf.multi_cell(0, 6, transcript_text)
 
-        buffer = io.BytesIO()
-        pdf.output(buffer)
-        buffer.seek(0)
-        return buffer.read()
+        raw = pdf.output(dest="S")
+        if isinstance(raw, str):
+            return raw.encode("latin-1", "replace")
+        return bytes(raw)
+
+    @staticmethod
+    def _sanitize_text(value: str | None) -> str:
+        if not value:
+            return ""
+        normalized = value.replace("\r\n", "\n").strip()
+        return normalized.encode("latin-1", "replace").decode("latin-1")
+
+    @staticmethod
+    def _wrap_text(value: str, width: int = 95) -> str:
+        if not value:
+            return ""
+
+        wrapped_lines: list[str] = []
+        for paragraph in value.split("\n"):
+            cleaned = paragraph.strip()
+            if not cleaned:
+                wrapped_lines.append("")
+                continue
+            wrapped_lines.extend(
+                textwrap.wrap(
+                    cleaned,
+                    width=width,
+                    break_long_words=True,
+                    break_on_hyphens=True,
+                    replace_whitespace=False,
+                )
+            )
+
+        return "\n".join(wrapped_lines)
