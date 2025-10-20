@@ -1,6 +1,6 @@
 # Transcription API Backend
 
-This FastAPI service provides speech-to-text transcription, summarisation, YouTube audio ingestion, and PDF export for the Transcribly frontend.
+This FastAPI service provides speech-to-text transcription, summarisation, YouTube audio ingestion, and plain-text export for the Transcribly frontend.
 
 ## Requirements
 
@@ -82,13 +82,13 @@ Environment variables listed above can be supplied via `--env`, `--env-file`, or
 
 - `POST /upload-audio` – multipart audio upload → transcript + summary + session id
 - `POST /youtube-transcribe` – JSON payload with `url` → transcript + summary + session id
-- `GET /download-pdf?session_id=...` – returns PDF containing transcript and summary
+- `GET /download-transcript?session_id=...` – returns transcript and summary as plain text
 - `GET /health` – health probe
 
 ## YouTube Support
 
 `yt-dlp` is required for YouTube downloads. Install `ffmpeg` on the host so audio extraction succeeds.
 
-## PDF Export
+## Transcript Export
 
-The PDF export uses `fpdf2` and includes both transcript and summary. Sessions are stored in-memory; expired sessions are purged automatically.
+Downloads return UTF-8 text files containing both the summary and transcript. Sessions are stored in-memory; expired sessions are purged automatically.

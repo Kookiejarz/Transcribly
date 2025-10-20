@@ -23,7 +23,7 @@ export const onRequestGet = async ({ request, env }: Context): Promise<Response>
   }
 
   const incomingUrl = new URL(request.url)
-  const backendUrl = new URL(`/download-pdf${incomingUrl.search}`, env.BACKEND_ORIGIN)
+  const backendUrl = new URL(`/download-transcript${incomingUrl.search}`, env.BACKEND_ORIGIN)
 
   try {
     const response = await fetch(backendUrl.toString(), {
@@ -32,7 +32,7 @@ export const onRequestGet = async ({ request, env }: Context): Promise<Response>
     })
     return response
   } catch (error) {
-    console.error("download-pdf proxy error:", error)
+    console.error("download-transcript proxy error:", error)
     return new Response(JSON.stringify({ error: "Failed to reach transcription backend" }), {
       status: 502,
       headers: { "Content-Type": "application/json" },

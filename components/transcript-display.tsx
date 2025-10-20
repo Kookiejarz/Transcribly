@@ -33,15 +33,15 @@ export default function TranscriptDisplay({ result }: TranscriptDisplayProps) {
     }
   }
 
-  const downloadPDF = async () => {
+  const downloadTranscript = async () => {
     setIsDownloading(true)
     try {
       const response = await fetch(
-        buildBackendUrl(`/download-pdf?session_id=${encodeURIComponent(result.sessionId)}`)
+        buildBackendUrl(`/download-transcript?session_id=${encodeURIComponent(result.sessionId)}`)
       )
 
       if (!response.ok) {
-        let message = "Failed to generate PDF"
+        let message = "Failed to download transcript"
         try {
           message = await extractBackendError(response)
         } catch {
@@ -54,13 +54,13 @@ export default function TranscriptDisplay({ result }: TranscriptDisplayProps) {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `transcript-${Date.now()}.pdf`
+      a.download = `transcript-${Date.now()}.txt`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (err) {
-      console.error("Failed to download PDF:", err)
+      console.error("Failed to download transcript:", err)
     } finally {
       setIsDownloading(false)
     }
@@ -144,12 +144,12 @@ export default function TranscriptDisplay({ result }: TranscriptDisplayProps) {
       </Card>
 
       <Button
-        onClick={downloadPDF}
+        onClick={downloadTranscript}
         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
         disabled={isDownloading}
       >
         <Download className="h-4 w-4" />
-        {isDownloading ? "Preparing PDF..." : "Download as PDF"}
+        {isDownloading ? "Preparing download..." : "Download as Text"}
       </Button>
     </div>
   )

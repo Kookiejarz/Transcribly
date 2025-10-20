@@ -1,13 +1,13 @@
 # Transcribly - Audio/Video Transcription & Summarization App
 
-A full-stack web application that transcribes and summarizes audio/video content using OpenAI's APIs. Users can upload audio files or provide YouTube URLs to get AI-generated transcripts and summaries with PDF export.
+A full-stack web application that transcribes and summarizes audio/video content using OpenAI's APIs. Users can upload audio files or provide YouTube URLs to get AI-generated transcripts and summaries with plain text export.
 
 ## Features
 
 - 🎙️ **Audio Transcription** - Upload MP3, WAV, MP4, or M4A files
 - 🎬 **YouTube Support** - Transcribe videos directly from YouTube URLs
 - 📝 **AI Summarization** - Generate concise summaries with chunking for long transcripts
-- 📄 **PDF Export** - Download transcripts and summaries as formatted PDFs
+- 📄 **Text Export** - Download transcripts and summaries as plain text files
 - ⚙️ **Configurable** - Customize API keys, models, and parameters per request
 - 🎨 **Modern UI** - Clean interface with drag-and-drop, light/dark themes
 - 📊 **Progress Tracking** - Real-time upload progress indicators
@@ -21,7 +21,7 @@ A full-stack web application that transcribes and summarizes audio/video content
   - Drag-and-drop file upload
   - YouTube URL input
   - Real-time progress tracking
-  - Copy to clipboard & PDF download
+  - Copy to clipboard & text download
   - Configurable API settings
 
 ### Backend (FastAPI + Python)
@@ -30,7 +30,7 @@ A full-stack web application that transcribes and summarizes audio/video content
   - OpenAI Whisper API integration
   - Text summarization with smart chunking
   - YouTube audio extraction via `yt-dlp`
-  - PDF generation with `fpdf2`
+  - Plain text transcript export
   - In-memory session management
 
 ## Quick Start
@@ -131,7 +131,7 @@ Replace the files in `public/` (`logo.svg`, `logo-dark.svg`, `favicon.svg`, `app
 
 - `POST /upload-audio` - Upload audio file for transcription
 - `POST /youtube-transcribe` - Transcribe YouTube video by URL
-- `GET /download-pdf?session_id=...` - Download PDF of transcript/summary
+- `GET /download-transcript?session_id=...` - Download transcript/summary as plain text
 - `GET /health` - Health check endpoint
 
 ### Request Overrides
@@ -209,7 +209,6 @@ transcription-app/
 - FastAPI + Uvicorn
 - OpenAI SDK
 - yt-dlp (YouTube downloads)
-- fpdf2 (PDF generation)
 - python-multipart (file uploads)
 
 ## Development

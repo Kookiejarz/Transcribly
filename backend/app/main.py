@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import io
 import logging
 from pathlib import Path
@@ -19,7 +18,6 @@ from .models import (
 from .options import RequestOptions
 from .services import (
     OpenAIClientProvider,
-    PDFExportService,
     SessionStore,
     SummarizationService,
     TranscriptionError,
@@ -52,7 +50,6 @@ summarization_service = SummarizationService(
     client_provider=client_provider,
 )
 session_store = SessionStore(ttl_minutes=settings.session_ttl_minutes)
-pdf_service = PDFExportService()
 youtube_service = YouTubeAudioService(
     output_dir=settings.temp_dir or None,
     fmt=settings.youtube_audio_format,
@@ -183,24 +180,20 @@ async def youtube_transcribe(
 
 
 @app.get(
-    "/download-pdf",
+    "/download-transcript",
     responses={404: {"model": ErrorResponse}},
 )
-async def download_pdf(session_id: str = Query(..., description="Session identifier.")):
+async def download_transcript(session_id: str = Query(..., description="Session identifier.")):
     record = session_store.get(session_id)
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found or expired.")
 
     transcript, summary = record
-    pdf_bytes = await asyncio.to_thread(
-        pdf_service.build_pdf, transcript, summary, session_id=session_id
-    )
-    stream = io.BytesIO(pdf_bytes)
+    content = f"Session: {session_id}\n\nSummary:\n{summary or 'No summary available.'}\n\nTranscript:\n{transcript or 'No transcript available.'}\n"
+    stream = io.BytesIO(content.encode("utf-8"))
 
-    headers = {
-        "Content-Disposition": f'attachment; filename="transcript-{session_id}.pdf"'
-    }
-    return StreamingResponse(stream, media_type="application/pdf", headers=headers)
+    headers = {"Content-Disposition": f'attachment; filename="transcript-{session_id}.txt"'}
+    return StreamingResponse(stream, media_type="text/plain; charset=utf-8", headers=headers)
 
 
 def build_request_options(request: Request, payload: TranscriptionOptions) -> RequestOptions:
